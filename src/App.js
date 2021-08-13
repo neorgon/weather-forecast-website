@@ -1,54 +1,32 @@
-import React, { Component } from 'react';
-import Axios from 'axios';
+import React, { useState, useEffect } from 'react';
 
-const API_KEY = process.env.REACT_APP_API_KEY;
-const API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?';
+import requestLocation from './libs/getPosition';
+import getCityName from './libs/getCityName';
 
-const fetchGeoData = async (params) => {
-  const response = await Axios(`${API_URL}${params.api_type}=${params.values}&sensor=true&key=${API_KEY}`)
-  return response;
-}
+const App = () => {
 
-class App extends Component {
+	const [position, setPosition] = useState([]);
+	const [cityName, setCityName] = useState('');
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      data: null,
-      default_city_name: '',
-      address_components: null,
-      geometry: null
-    };
-    this.setAddress = this.setAddress.bind(this);
-  }
+	const handleClick = () => {
+		getCityName(position[1], position[0]).then(city => setCityName(city));
+	}
 
-  componentDidMount() {
-    const success = (position) => {
-      const results = fetchGeoData({api_type: 'latlng', values: `${position.coords.latitude},${position.coords.longitude}`});
-      results.then((res) => {
-        this.setState({ default_city_name: res.data['results'][0]['address_components'][1]['long_name'] });
-      });
-    }
-    navigator.geolocation.getCurrentPosition(success);
-  }
+	useEffect(() => {
+		const fetchData = async () => {
+			const result = await requestLocation();
+			setPosition(result);
+		}
 
-  setAddress() {
-    const results = fetchGeoData({api_type: 'address', values: 'Tiquipaya'});
-    results.then((res) => {
-      this.setState({address_components: res.data.results[0].address_components});
-      console.log(this.state.address_components);
-    });
-    
-  }
+		fetchData();
+	}, []);
 
-  render() {
-    return <>
-      <h2>Weather App</h2>
-      <label>Your city:</label>
-      <input name="city" defaultValue={ this.state.default_city_name } />
-      <button onClick={ this.setAddress }>Test</button>
-    </>
-  }
+	return <>
+		<h1>My new app weather</h1>
+		<p>Position: { position[0] }, { position[1] }</p>
+		<p>City name: { cityName }</p>
+		<button onClick={handleClick}>Click here</button>
+	</>
 
 }
 

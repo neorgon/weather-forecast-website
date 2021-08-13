@@ -1,0 +1,1 @@
+export const mapHost = 'https://api.mapbox.com/geocoding/v5/mapbox.places/';
